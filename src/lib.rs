@@ -7,21 +7,6 @@ mod structs;
 #[cfg(target_arch = "wasm32")]
 mod web;
 
-pub fn setup_logger() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            web::wasm::setup_wasm_logger();
-        } else {
-        // TODO: we're filtering out wgpu_core::device::re
-            let env = env_logger::Env::default().filter_or("RUST_LOG", "info");
-                   env_logger::Builder::from_env(env)
-                       // TODO: figure this out
-                       .filter(Some("wgpu_core::device::resource"), log::LevelFilter::Warn)
-                       .init();
-        }
-    }
-}
-
 #[macro_export]
 macro_rules! if_wasm {
     ($wasm:expr, $not_wasm:expr) => {{
@@ -34,6 +19,17 @@ macro_rules! if_wasm {
             $not_wasm
         }
     }};
+}
+
+pub fn setup_logger() {
+    if_wasm!(web::wasm::setup_wasm_logger(), {
+        // TODO: we're filtering out wgpu_core::device::re
+        let env = env_logger::Env::default().filter_or("RUST_LOG", "info");
+        env_logger::Builder::from_env(env)
+            // TODO: figure this out
+            .filter(Some("wgpu_core::device::resource"), log::LevelFilter::Warn)
+            .init();
+    })
 }
 
 pub fn run() {

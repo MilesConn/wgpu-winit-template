@@ -7,9 +7,9 @@ use futures_executor::block_on;
 use std::pin::pin;
 use std::sync::Arc;
 #[cfg(not(target_arch = "wasm32"))]
-use std::time::{Duration, Instant};
+use std::time::Instant;
 #[cfg(target_arch = "wasm32")]
-use web_time::{Duration, Instant};
+use web_time::Instant;
 use winit::application::ApplicationHandler;
 use winit::dpi::PhysicalSize;
 use winit::event::WindowEvent;
@@ -78,9 +78,8 @@ impl AppState {
         let swapchain_format = swapchain_capabilities
             .formats
             .iter()
-            .map(|d| {
+            .inspect(|&d| {
                 log::info!("Swap chain format {:?}", d);
-                d
             })
             .find(|d| **d == selected_format)
             .expect("failed to select proper surface texture format!");
@@ -224,6 +223,12 @@ pub struct App {
     window: Option<Arc<Window>>,
 }
 
+impl Default for App {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl App {
     pub fn new() -> Self {
         let instance = egui_wgpu::wgpu::Instance::new(wgpu::InstanceDescriptor::default());
@@ -260,7 +265,9 @@ impl App {
     }
 
     fn handle_resized(&mut self, width: u32, height: u32) {
-        self.state.as_mut().map(|x| x.resize_surface(width, height));
+        if let Some(x) = self.state.as_mut() {
+            x.resize_surface(width, height)
+        }
     }
 
     fn handle_redraw(&mut self) {
@@ -403,10 +410,8 @@ impl ApplicationHandler for App {
             return;
         }
 
-        self.state.as_mut().map(|x| {
-            x.egui_renderer
-                .handle_input(self.window.as_ref().unwrap(), &event);
-        });
+        if let Some(x) = self.state.as_mut() { x.egui_renderer
+                .handle_input(self.window.as_ref().unwrap(), &event); }
         // .unwrap()
         // .egui_renderer
 
