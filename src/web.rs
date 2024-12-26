@@ -1,11 +1,10 @@
 use wasm_bindgen::prelude::*;
 use web_sys;
 use winit::error::EventLoopError;
-use winit::event_loop::EventLoop;
 
 // Function to convert EventLoopError to JsValue for WebAssembly context
 // Because of orphan rule we can't impl From :(
-pub fn event_loop_error_to_jsvalue(value: EventLoopError) -> JsValue {
+pub fn _event_loop_error_to_jsvalue(value: EventLoopError) -> JsValue {
     JsValue::from_str(&format!("{:?}", value))
 }
 

@@ -22,7 +22,7 @@ macro_rules! if_wasm {
 }
 
 pub fn setup_logger() {
-    if_wasm!(web::wasm::setup_wasm_logger(), {
+    if_wasm!(web::setup_wasm_logger(), {
         // TODO: we're filtering out wgpu_core::device::re
         let env = env_logger::Env::default().filter_or("RUST_LOG", "info");
         env_logger::Builder::from_env(env)

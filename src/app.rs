@@ -391,7 +391,7 @@ impl ApplicationHandler for App {
         {
             // This code makes zero fucking sense but yolo
             window.request_redraw();
-            crate::web::wasm::setup_wasm_window(&window);
+            crate::web::setup_wasm_window(&window);
         }
 
         window.request_redraw();
@@ -410,8 +410,10 @@ impl ApplicationHandler for App {
             return;
         }
 
-        if let Some(x) = self.state.as_mut() { x.egui_renderer
-                .handle_input(self.window.as_ref().unwrap(), &event); }
+        if let Some(x) = self.state.as_mut() {
+            x.egui_renderer
+                .handle_input(self.window.as_ref().unwrap(), &event);
+        }
         // .unwrap()
         // .egui_renderer
 
