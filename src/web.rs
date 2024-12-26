@@ -8,6 +8,11 @@ pub fn _event_loop_error_to_jsvalue(value: EventLoopError) -> JsValue {
     JsValue::from_str(&format!("{:?}", value))
 }
 
+#[wasm_bindgen(start)]
+pub async fn wasm_run() {
+    crate::run()
+}
+
 pub fn setup_wasm_logger() {
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
@@ -15,7 +20,6 @@ pub fn setup_wasm_logger() {
 
 pub fn setup_wasm_window(window: &winit::window::Window) {
     use winit::dpi::PhysicalSize;
-    let _ = window.request_inner_size(PhysicalSize::new(450, 400));
 
     use winit::platform::web::WindowExtWebSys;
     web_sys::window()
@@ -27,4 +31,6 @@ pub fn setup_wasm_window(window: &winit::window::Window) {
             Some(())
         })
         .expect("Couldn't append canvas to document body.");
+
+    let _ = window.request_inner_size(PhysicalSize::new(900, 800));
 }

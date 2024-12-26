@@ -347,25 +347,6 @@ impl App {
                     }
                 });
 
-            {
-                // Egui FPS
-                // egui::Window::new("Stats").default_pos([10.0, 10.0]).show(
-                //     state.egui_renderer.context(),
-                //     |ui| {
-                //         ui.label(format!(
-                //             "FPS: {:.1}",
-                //             state
-                //                 .egui_renderer
-                //                 .context()
-                //                 .input(|i| i.unstable_dt.recip())
-                //         ));
-                //     },
-                // );
-            }
-
-            // egui::Window::new("editor?").resizable(true).vscroll(true)
-            //     .show(state.egui_renderer.context())
-
             state.egui_renderer.end_frame_and_draw(
                 &state.device,
                 &state.queue,
@@ -389,7 +370,6 @@ impl ApplicationHandler for App {
 
         #[cfg(target_arch = "wasm32")]
         {
-            // This code makes zero fucking sense but yolo
             window.request_redraw();
             crate::web::setup_wasm_window(&window);
         }
