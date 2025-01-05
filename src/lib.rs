@@ -1,7 +1,6 @@
 use winit::event_loop::EventLoop;
 
 pub mod app;
-mod egui_tools;
 mod structs;
 
 #[cfg(target_arch = "wasm32")]

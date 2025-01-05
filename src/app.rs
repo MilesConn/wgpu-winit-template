@@ -1,9 +1,6 @@
-use crate::egui_tools::EguiRenderer;
 use crate::if_wasm;
 use crate::structs::UniformBuffer;
 use bevy_crevice::std140::{AsStd140, Std140};
-use egui_wgpu::{wgpu, ScreenDescriptor};
-use futures_executor::block_on;
 use std::pin::pin;
 use std::sync::Arc;
 #[cfg(not(target_arch = "wasm32"))]
@@ -22,7 +19,6 @@ pub struct AppState {
     pub surface_config: wgpu::SurfaceConfiguration,
     pub surface: wgpu::Surface<'static>,
     pub scale_factor: f32,
-    pub egui_renderer: EguiRenderer,
     uniform_buffer: wgpu::Buffer,
     uniform_bind_group: wgpu::BindGroup,
     uniform_bind_group_layout: wgpu::BindGroupLayout,
@@ -35,7 +31,7 @@ impl AppState {
     async fn new(
         instance: &wgpu::Instance,
         surface: wgpu::Surface<'static>,
-        window: &Window,
+        _window: &Window,
         width: u32,
         height: u32,
     ) -> Self {
@@ -97,8 +93,6 @@ impl AppState {
         };
 
         surface.configure(&device, &surface_config);
-
-        let egui_renderer = EguiRenderer::new(&device, surface_config.format, None, 1, window);
 
         let scale_factor = 1.0;
 
@@ -200,7 +194,6 @@ impl AppState {
             queue,
             surface,
             surface_config,
-            egui_renderer,
             scale_factor,
             uniform_buffer,
             uniform_bind_group,
@@ -231,7 +224,7 @@ impl Default for App {
 
 impl App {
     pub fn new() -> Self {
-        let instance = egui_wgpu::wgpu::Instance::new(wgpu::InstanceDescriptor::default());
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::default());
         Self {
             instance,
             state: None,
@@ -277,12 +270,6 @@ impl App {
 
         let state = self.state.as_mut().unwrap();
 
-        let screen_descriptor = ScreenDescriptor {
-            size_in_pixels: [state.surface_config.width, state.surface_config.height],
-            pixels_per_point: self.window.as_ref().unwrap().scale_factor() as f32
-                * state.scale_factor,
-        };
-
         let surface_texture = state
             .surface
             .get_current_texture()
@@ -295,8 +282,6 @@ impl App {
         let mut encoder = state
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
-
-        let window = self.window.as_ref().unwrap();
 
         let elapsed_time = Instant::now().duration_since(state.start);
         let ub = UniformBuffer::new(elapsed_time.as_millis() as f32);
@@ -332,30 +317,6 @@ impl App {
             render_pass.draw(0..3, 0..1);
         }
 
-        {
-            state.egui_renderer.begin_frame(window);
-
-            egui::Window::new("winit + egui + wgpu says hello!")
-                .resizable(true)
-                .vscroll(true)
-                .default_open(true)
-                .show(state.egui_renderer.context(), |ui| {
-                    ui.label("Label!");
-
-                    if ui.button("Button!").clicked() {
-                        println!("boom!")
-                    }
-                });
-
-            state.egui_renderer.end_frame_and_draw(
-                &state.device,
-                &state.queue,
-                &mut encoder,
-                window,
-                &surface_view,
-                screen_descriptor,
-            );
-        }
         state.queue.submit(Some(encoder.finish()));
         surface_texture.present();
     }
@@ -368,45 +329,27 @@ impl ApplicationHandler for App {
             .create_window(Window::default_attributes())
             .unwrap();
 
+        window.request_redraw();
         #[cfg(target_arch = "wasm32")]
         {
-            window.request_redraw();
             crate::web::setup_wasm_window(&window);
         }
 
-        window.request_redraw();
         log::info!("We requested the redraw");
 
         // This works cross platform
         let future = pin!(self.set_window(window));
-        block_on(future);
+        futures_executor::block_on(future);
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _: WindowId, event: WindowEvent) {
-        // let egui render to process the event first
-        //
         if self.window.is_none() {
             log::info!("Window is none");
             return;
         }
 
-        if let Some(x) = self.state.as_mut() {
-            x.egui_renderer
-                .handle_input(self.window.as_ref().unwrap(), &event);
-        }
-        // .unwrap()
-        // .egui_renderer
-
-        // log::info!("WINDOW EVENT: {:?}", event);
-        // PUTTING THIS OUTSIDE HELPS IMMESENTLY
-        // But i don't think it's supposed to be here
-        // https://github.com/rust-windowing/winit/discussions/3494
-        // maybe here?
-        // TODO: handle this properly
-        // self.window.as_ref().unwrap().request_redraw();
         match event {
             WindowEvent::CloseRequested => {
-                // println!("The close button was pressed; stopping");
                 event_loop.exit();
             }
             WindowEvent::RedrawRequested => {
