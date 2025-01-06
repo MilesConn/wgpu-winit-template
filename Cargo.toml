@@ -10,7 +10,6 @@ winit = { version = "0.30.5", features = ["rwh_05"] }
 env_logger = "0.11.5"
 log = "0.4.22"
 wgpu = "22.1.0"
-pollster = "0.3.0"
 parking_lot = "0.12.3"
 take_mut = "0.2.2"
 bytemuck = "1.19.0"
