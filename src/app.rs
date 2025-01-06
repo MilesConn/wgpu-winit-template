@@ -339,7 +339,7 @@ impl ApplicationHandler for App {
 
         // This works cross platform
         let future = pin!(self.set_window(window));
-        futures_executor::block_on(future);
+        pollster::block_on(future);
     }
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, _: WindowId, event: WindowEvent) {

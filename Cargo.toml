@@ -14,7 +14,7 @@ parking_lot = "0.12.3"
 take_mut = "0.2.2"
 bytemuck = "1.19.0"
 bevy_crevice = "0.7.0"
-futures-executor = "0.3.31"
+pollster = "0.4.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-time = "1.1.0"
